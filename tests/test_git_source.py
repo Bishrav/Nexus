@@ -1,4 +1,6 @@
 import unittest
+from unittest.mock import patch
+import subprocess
 
 from nexus.git_source import GitChangeKind, GitRevisionReader, GitSourceError
 
@@ -47,6 +49,18 @@ class GitRevisionReaderTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             reader.changed_files(" ")
         self.assertEqual(calls, [])
+
+    def test_git_timeout_is_converted_to_structured_source_error(self) -> None:
+        reader = GitRevisionReader("C:/repo", timeout_seconds=0.1)
+        timeout = subprocess.TimeoutExpired(["git"], 0.1)
+        with patch("nexus.git_source.subprocess.run", side_effect=timeout):
+            with self.assertRaises(GitSourceError) as error:
+                reader.current_revision()
+        self.assertIn("timed out", str(error.exception))
+
+    def test_non_positive_timeout_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            GitRevisionReader("C:/repo", timeout_seconds=0)
 
 
 if __name__ == "__main__":

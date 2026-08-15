@@ -38,6 +38,13 @@ class PythonParserTests(unittest.TestCase):
         self.assertEqual(result.diagnostics[0].code, "SYNTAX_ERROR")
         self.assertEqual(result.symbols, ())
 
+    def test_source_size_limit_returns_structured_failure(self) -> None:
+        result = PythonParserAdapter(max_source_bytes=5).parse(
+            ParserInputContract(self.source_file, "123456")
+        )
+        self.assertEqual(result.status, ParseStatus.FAILED)
+        self.assertEqual(result.diagnostics[0].code, "SOURCE_TOO_LARGE")
+
     def test_extracts_import_relationships(self) -> None:
         source_file = SourceFileContract(
             "repo:nexus", "tests/fixtures/python_imports.py", "python", HASH, 80

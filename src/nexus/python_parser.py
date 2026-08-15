@@ -16,12 +16,25 @@ class PythonParserAdapter:
 
     language = "python"
 
-    def __init__(self, metrics: MetricsCollector | None = None) -> None:
+    def __init__(self, metrics: MetricsCollector | None = None, max_source_bytes: int = 1_000_000) -> None:
+        if max_source_bytes <= 0:
+            raise ValueError("max_source_bytes must be positive")
         self.metrics = metrics
+        self.max_source_bytes = max_source_bytes
 
     def parse(self, parser_input: ParserInputContract) -> ParserOutputContract:
         source_file = parser_input.source_file
         started = time.perf_counter()
+        if len(parser_input.content.encode("utf-8")) > self.max_source_bytes:
+            diagnostic = DiagnosticContract(
+                DiagnosticSeverity.ERROR,
+                "SOURCE_TOO_LARGE",
+                f"source exceeds the {self.max_source_bytes}-byte parser limit",
+                source_file.path,
+            )
+            result = ParserOutputContract(source_file, ParseStatus.FAILED, diagnostics=(diagnostic,))
+            self._record_metrics("failure", started)
+            return result
         try:
             tree = ast.parse(parser_input.content, filename=source_file.path)
         except SyntaxError as error:

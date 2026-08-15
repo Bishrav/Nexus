@@ -42,9 +42,17 @@ CommandRunner = Callable[[Sequence[str]], str]
 class GitRevisionReader:
     """Read revisions and file changes from one local Git repository."""
 
-    def __init__(self, root: str | Path, runner: CommandRunner | None = None) -> None:
+    def __init__(
+        self,
+        root: str | Path,
+        runner: CommandRunner | None = None,
+        timeout_seconds: float = 30.0,
+    ) -> None:
         self.root = Path(root)
         self._runner = runner or self._run_git
+        if timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be positive")
+        self.timeout_seconds = timeout_seconds
 
     def current_revision(self) -> str:
         revision = self._runner(("rev-parse", "HEAD")).strip()
@@ -85,7 +93,12 @@ class GitRevisionReader:
                 check=True,
                 capture_output=True,
                 text=True,
+                timeout=self.timeout_seconds,
             )
+        except subprocess.TimeoutExpired as error:
+            raise GitSourceError(
+                f"Git command timed out after {self.timeout_seconds}s in {self.root}"
+            ) from error
         except (OSError, subprocess.CalledProcessError) as error:
             raise GitSourceError(f"Git command failed in {self.root}: {error}") from error
         return completed.stdout
