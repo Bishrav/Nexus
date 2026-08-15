@@ -83,3 +83,4 @@ The Phase 4 observability baseline is documented in [docs/observability.md](docs
 The reproducible parser benchmark harness is documented in [docs/benchmarks.md](docs/benchmarks.md).
 Golden parser evaluation is documented in [docs/evaluation.md](docs/evaluation.md).
 Parser and Git timeout/size failure boundaries are documented in [docs/operational-limits.md](docs/operational-limits.md).
+The sequential load-test harness is documented in [docs/load-tests.md](docs/load-tests.md).
