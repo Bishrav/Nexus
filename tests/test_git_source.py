@@ -62,6 +62,28 @@ class GitRevisionReaderTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             GitRevisionReader("C:/repo", timeout_seconds=0)
 
+    def test_transient_timeout_is_retried(self) -> None:
+        timeout = subprocess.TimeoutExpired(["git"], 0.1)
+        success = subprocess.CompletedProcess(["git"], 0, stdout="abc123\n", stderr="")
+        reader = GitRevisionReader("C:/repo", max_attempts=2, retry_delay_seconds=0)
+        with patch("nexus.git_source.subprocess.run", side_effect=[timeout, success]) as run:
+            self.assertEqual(reader.current_revision(), "abc123")
+        self.assertEqual(run.call_count, 2)
+
+    def test_retry_exhaustion_is_reported(self) -> None:
+        timeout = subprocess.TimeoutExpired(["git"], 0.1)
+        reader = GitRevisionReader("C:/repo", max_attempts=2, retry_delay_seconds=0)
+        with patch("nexus.git_source.subprocess.run", side_effect=timeout):
+            with self.assertRaises(GitSourceError) as error:
+                reader.current_revision()
+        self.assertIn("2 attempts", str(error.exception))
+
+    def test_invalid_retry_configuration_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            GitRevisionReader("C:/repo", max_attempts=0)
+        with self.assertRaises(ValueError):
+            GitRevisionReader("C:/repo", retry_delay_seconds=-1)
+
 
 if __name__ == "__main__":
     unittest.main()

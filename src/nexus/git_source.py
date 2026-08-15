@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import time
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -47,12 +48,20 @@ class GitRevisionReader:
         root: str | Path,
         runner: CommandRunner | None = None,
         timeout_seconds: float = 30.0,
+        max_attempts: int = 2,
+        retry_delay_seconds: float = 0.1,
     ) -> None:
         self.root = Path(root)
         self._runner = runner or self._run_git
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be positive")
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be positive")
+        if retry_delay_seconds < 0:
+            raise ValueError("retry_delay_seconds must be non-negative")
         self.timeout_seconds = timeout_seconds
+        self.max_attempts = max_attempts
+        self.retry_delay_seconds = retry_delay_seconds
 
     def current_revision(self) -> str:
         revision = self._runner(("rev-parse", "HEAD")).strip()
@@ -86,19 +95,29 @@ class GitRevisionReader:
         raise GitSourceError(f"unsupported Git change status: {line!r}")
 
     def _run_git(self, args: Sequence[str]) -> str:
-        try:
-            completed = subprocess.run(
-                ("git", *args),
-                cwd=self.root,
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_seconds,
-            )
-        except subprocess.TimeoutExpired as error:
-            raise GitSourceError(
-                f"Git command timed out after {self.timeout_seconds}s in {self.root}"
-            ) from error
-        except (OSError, subprocess.CalledProcessError) as error:
-            raise GitSourceError(f"Git command failed in {self.root}: {error}") from error
-        return completed.stdout
+        for attempt in range(1, self.max_attempts + 1):
+            try:
+                completed = subprocess.run(
+                    ("git", *args),
+                    cwd=self.root,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=self.timeout_seconds,
+                )
+                return completed.stdout
+            except subprocess.TimeoutExpired as error:
+                if attempt == self.max_attempts:
+                    raise GitSourceError(
+                        f"Git command timed out after {self.max_attempts} attempts "
+                        f"({self.timeout_seconds}s each) in {self.root}"
+                    ) from error
+            except OSError as error:
+                if attempt == self.max_attempts:
+                    raise GitSourceError(
+                        f"Git command failed after {self.max_attempts} attempts in {self.root}: {error}"
+                    ) from error
+            except subprocess.CalledProcessError as error:
+                raise GitSourceError(f"Git command failed in {self.root}: {error}") from error
+            time.sleep(self.retry_delay_seconds)
+        raise GitSourceError("Git command retry loop exited unexpectedly")
