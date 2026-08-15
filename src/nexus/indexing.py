@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Iterable
+from typing import Iterable, Mapping
 
 from nexus.domain import ContractValidationError, SourceFileContract, _require_identifier
+from nexus.index import IndexValidationError, RepositoryIndex
+from nexus.parser import ParserOutputContract
 
 
 class IndexingValidationError(ContractValidationError):
@@ -93,6 +95,36 @@ def plan_incremental_update(
         else:
             changes.append(FileChange(path, FileChangeKind.CHANGED, old.content_hash, new.content_hash))
     return IncrementalPlan(repository_id, previous_revision, current_revision, tuple(changes))
+
+
+def apply_incremental_plan(
+    index: RepositoryIndex,
+    plan: IncrementalPlan,
+    outputs: Mapping[str, ParserOutputContract],
+) -> None:
+    """Apply a validated plan and advance the index revision atomically by intent."""
+
+    if index.repository_id != plan.repository_id:
+        raise IndexingValidationError("plan and index repository IDs do not match")
+    if index.revision != plan.previous_revision:
+        raise IndexingValidationError(
+            f"plan starts at {plan.previous_revision!r}, but index is at {index.revision!r}"
+        )
+    expected_paths = set(plan.reparsed_paths)
+    if set(outputs) != expected_paths:
+        raise IndexingValidationError("parser outputs must exactly match added and changed paths")
+    for path in plan.removed_paths:
+        index.remove_file(path)
+    for path in plan.reparsed_paths:
+        output = outputs[path]
+        if output.source_file.path != path:
+            raise IndexingValidationError(f"parser output path mismatch for {path!r}")
+        index.remove_file(path)
+        try:
+            index.add_parser_output(output)
+        except IndexValidationError:
+            raise
+    index.revision = plan.current_revision
 
 
 def _manifest(

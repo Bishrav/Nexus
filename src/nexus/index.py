@@ -68,6 +68,24 @@ class RepositoryIndex:
             self._add_relationship(relationship)
         self._diagnostics.extend(output.diagnostics)
 
+    def remove_file(self, path: str) -> None:
+        """Remove one file and all facts whose identity is scoped to it."""
+
+        self._files.pop(path, None)
+        symbol_prefix = f"symbol:{self.repository_id}:{path}:"
+        file_id = f"file:{self.repository_id}:{path}"
+        for symbol_id, symbol in tuple(self._symbols.items()):
+            if symbol.file_path == path or symbol_id.startswith(symbol_prefix):
+                del self._symbols[symbol_id]
+        for key, relationship in tuple(self._relationships.items()):
+            if (
+                relationship.source_id == file_id
+                or relationship.source_id.startswith(symbol_prefix)
+                or relationship.target_id.startswith(symbol_prefix)
+            ):
+                del self._relationships[key]
+        self._diagnostics = [diagnostic for diagnostic in self._diagnostics if diagnostic.path != path]
+
     def get_symbol(self, symbol_id: str) -> SymbolContract | None:
         return self._symbols.get(symbol_id)
 
