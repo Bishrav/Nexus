@@ -2,17 +2,72 @@
 
 NEXUS is an in-development repository intelligence engine for AI-assisted software engineering.
 
-It is intended to build a deterministic, machine-readable representation of a software repository so developers and AI tools can inspect architecture, dependencies, history, and change impact using verified source evidence.
+It turns source code and Git revisions into deterministic, queryable facts: files, symbols, imports, calls, diagnostics, and incremental change plans. The goal is to give future developer tools verified repository context before they attempt reasoning or code changes.
 
 ## Project status
 
-**In Development — Phase 0: Discovery and foundation**
+**In Development - Phase 5: Portfolio engineering quality**
 
-The repository currently contains only the initial Python package and CLI foundation. AST parsing, graph construction, indexing, retrieval, and AI tooling are planned milestones; they are not implemented yet.
+The core research prototype is implemented and tested. NEXUS currently supports Python AST symbol extraction, syntactic import/call relationships, in-memory indexing, incremental change planning/application, Git change discovery, JSON snapshots, runtime metrics, benchmarks, golden evaluation, and bounded failure handling.
 
-## Initial development setup
+AI providers, vector retrieval, multi-language parsing, persistent databases, and production deployment are planned; they are not implemented.
 
-NEXUS requires Python 3.11 or newer.
+## Why this project matters
+
+AI coding tools often reason from incomplete file snippets. NEXUS establishes a deterministic repository-facts layer first, so later tools can query exact source locations and relationships instead of relying only on inferred architecture.
+
+Example workflow:
+
+```text
+Git revision -> changed files -> parser adapter -> symbols/relationships
+             -> repository index -> impact/evidence queries
+```
+
+## Implemented capabilities
+
+- Versioned domain contracts for repositories, source files, symbols, relationships, ingestion, and diagnostics
+- Parser adapter protocol and deterministic language registry
+- Python parser based on the standard-library `ast` module
+- Class, function, method, and assignment symbol extraction
+- Syntactic Python import and call relationships, including recursive call edges
+- Deterministic in-memory repository index with symbol and relationship queries
+- Incremental added/changed/removed/unchanged file planning and index application
+- Git revision lookup and changed-file parsing with rename detection
+- Versioned JSON index snapshots with validation and restoration
+- Optional parser metrics for counts, failures, and measured durations
+- Benchmark, golden-evaluation, and sequential load-test CLI commands
+- Git timeout, bounded retry, and parser source-size safeguards
+
+## Architecture
+
+```text
+Local repository
+      |
+      v
+Git revision reader --> incremental change planner
+      |                         |
+      +-------------------------v
+                   parser registry
+                         |
+                         v
+                 Python AST adapter
+                         |
+                         v
+             normalized domain contracts
+                         |
+             +-----------+-----------+
+             v                       v
+       repository index       JSON snapshot
+             |
+             v
+       deterministic queries
+```
+
+The current implementation is deliberately local and dependency-light. The architecture baseline and design decision record are in [docs/architecture.md](docs/architecture.md) and [docs/decisions/0001-deterministic-core-first.md](docs/decisions/0001-deterministic-core-first.md).
+
+## Local setup
+
+NEXUS requires Python 3.11 or newer and the Git command-line tool for Git integration.
 
 ```powershell
 python -m venv .venv
@@ -23,18 +78,40 @@ python -m nexus --help
 python -m nexus --version
 ```
 
-The package can be installed locally after the environment is activated:
+Editable installation is supported in a normal writable environment:
 
 ```powershell
 python -m pip install --no-deps -e .
 nexus --version
 ```
 
-If editable installation is unavailable in a restricted checkout, keep `PYTHONPATH` set to `src` and use `python -m nexus`.
+## CLI examples
 
-## Validation
+Run a parser benchmark:
 
-The repository CI workflow installs the package in a clean environment and verifies supported Python versions, unit tests, Python syntax, and the installed CLI entry point. Run the equivalent local checks with:
+```powershell
+python -m nexus benchmark --fixture tests/fixtures/python_parser.py --iterations 10
+```
+
+Run golden evaluation:
+
+```powershell
+python -m nexus evaluate `
+  --fixture tests/evaluation/python_basic.py `
+  --expected tests/evaluation/python_basic.json
+```
+
+Run a sequential parser load test:
+
+```powershell
+python -m nexus load-test --fixture tests/fixtures/python_parser.py --operations 100
+```
+
+These commands report local observations and correctness results. They do not claim production throughput, scalability, or model quality.
+
+## Validation and CI
+
+Run the local test and syntax checks:
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -42,45 +119,52 @@ python -m unittest discover -s tests -v
 python -c "from pathlib import Path; files=list(Path('src').rglob('*.py'))+list(Path('tests').rglob('*.py')); [compile(p.read_text(encoding='utf-8'), str(p), 'exec') for p in files]"
 ```
 
-## Planned engineering direction
+GitHub Actions runs the package installation, unit tests, syntax compilation, and CLI verification across Python 3.11, 3.12, and 3.13. See [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-The implementation will grow in focused milestones:
+The current suite contains 56 tests covering contracts, parser behavior, indexing, Git failure handling, snapshots, benchmarks, and evaluation fixtures.
 
-1. Define versioned repository, file, symbol, and graph contracts.
-2. Add a deterministic single-language parser and symbol index.
-3. Add import and call graphs with queryable relationships.
-4. Add Git history and incremental indexing.
-5. Add retrieval, impact analysis, typed evidence, and evaluation fixtures.
+## Documentation
 
-The project will report only capabilities that are implemented and verified in this repository.
+- [Domain contracts](docs/domain-contracts.md)
+- [Ingestion contracts](docs/ingestion-contracts.md)
+- [Parser adapters](docs/parser-adapters.md)
+- [Python parser](docs/python-parser.md)
+- [Parser registry](docs/parser-registry.md)
+- [Repository index](docs/repository-index.md)
+- [Incremental indexing](docs/incremental-indexing.md)
+- [Git integration](docs/git-source.md)
+- [Snapshots](docs/snapshots.md)
+- [Observability](docs/observability.md)
+- [Benchmarks](docs/benchmarks.md)
+- [Golden evaluation](docs/evaluation.md)
+- [Operational limits](docs/operational-limits.md)
+- [Load tests](docs/load-tests.md)
 
-## Architecture
+## Known limitations
 
-See [the architecture baseline](docs/architecture.md) and [ADR 0001](docs/decisions/0001-deterministic-core-first.md) for the current boundaries and engineering rationale. These documents describe planned architecture; they do not claim that the parser, graph, index, or AI layers are implemented.
+- Only Python parsing is implemented.
+- Call and import targets are syntactic IDs; name binding and cross-file resolution are not implemented.
+- The repository index is in memory; snapshots are explicit JSON files rather than a database.
+- Incremental planning does not yet read file contents or schedule parser jobs automatically.
+- Git retries cover timeout and OS-level execution failures only.
+- Metrics and benchmark results are process-local observations.
+- No AI provider, vector index, hosted API, or production deployment is included.
+
+## Roadmap
+
+1. Complete portfolio documentation, examples, and clean-environment verification.
+2. Add stronger graph queries and cross-file symbol resolution.
+3. Add additional language adapters behind the existing parser protocol.
+4. Add persistent storage and background indexing workflows.
+5. Add retrieval and typed evidence tooling after deterministic facts are reliable.
 
 ## Repository structure
 
 ```text
-src/nexus/       Python package and CLI
-tests/           Deterministic automated tests
-.env.example     Non-secret local configuration template
-pyproject.toml   Package metadata and development entry point
-docs/            Architecture notes and decision records
+src/nexus/       Core contracts, parser, index, Git, snapshots, and CLI
+tests/           Unit, integration, evaluation, and benchmark tests
+docs/            Architecture, contracts, operations, and evaluation notes
 .github/         Continuous integration workflow
+pyproject.toml   Package metadata and CLI entry point
+.env.example     Non-secret configuration template
 ```
-
-Phase 1 domain contracts are documented in [docs/domain-contracts.md](docs/domain-contracts.md).
-Ingestion request, result, and diagnostic semantics are documented in [docs/ingestion-contracts.md](docs/ingestion-contracts.md).
-The parser adapter and normalized output boundary are documented in [docs/parser-adapters.md](docs/parser-adapters.md).
-Parser selection and dispatch are documented in [docs/parser-registry.md](docs/parser-registry.md).
-The first implemented parser is documented in [docs/python-parser.md](docs/python-parser.md); it currently extracts Python symbols only.
-The parser-to-facts query path is documented in [docs/repository-index.md](docs/repository-index.md).
-Incremental change planning is documented in [docs/incremental-indexing.md](docs/incremental-indexing.md).
-Applying plans to replace stale index facts is documented in [docs/incremental-apply.md](docs/incremental-apply.md).
-Git revision and changed-file discovery are documented in [docs/git-source.md](docs/git-source.md).
-Durable index snapshots are documented in [docs/snapshots.md](docs/snapshots.md).
-The Phase 4 observability baseline is documented in [docs/observability.md](docs/observability.md).
-The reproducible parser benchmark harness is documented in [docs/benchmarks.md](docs/benchmarks.md).
-Golden parser evaluation is documented in [docs/evaluation.md](docs/evaluation.md).
-Parser and Git timeout/size failure boundaries are documented in [docs/operational-limits.md](docs/operational-limits.md).
-The sequential load-test harness is documented in [docs/load-tests.md](docs/load-tests.md).
