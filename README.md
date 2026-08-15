@@ -32,6 +32,16 @@ nexus --version
 
 If editable installation is unavailable in a restricted checkout, keep `PYTHONPATH` set to `src` and use `python -m nexus`.
 
+## Validation
+
+The repository CI workflow installs the package in a clean environment and verifies supported Python versions, unit tests, Python syntax, and the installed CLI entry point. Run the equivalent local checks with:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m unittest discover -s tests -v
+python -c "from pathlib import Path; files=list(Path('src').rglob('*.py'))+list(Path('tests').rglob('*.py')); [compile(p.read_text(encoding='utf-8'), str(p), 'exec') for p in files]"
+```
+
 ## Planned engineering direction
 
 The implementation will grow in focused milestones:
@@ -56,4 +66,5 @@ tests/           Deterministic automated tests
 .env.example     Non-secret local configuration template
 pyproject.toml   Package metadata and development entry point
 docs/            Architecture notes and decision records
+.github/         Continuous integration workflow
 ```
