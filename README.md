@@ -44,6 +44,10 @@ The implementation will grow in focused milestones:
 
 The project will report only capabilities that are implemented and verified in this repository.
 
+## Architecture
+
+See [the architecture baseline](docs/architecture.md) and [ADR 0001](docs/decisions/0001-deterministic-core-first.md) for the current boundaries and engineering rationale. These documents describe planned architecture; they do not claim that the parser, graph, index, or AI layers are implemented.
+
 ## Repository structure
 
 ```text
@@ -51,4 +55,5 @@ src/nexus/       Python package and CLI
 tests/           Deterministic automated tests
 .env.example     Non-secret local configuration template
 pyproject.toml   Package metadata and development entry point
+docs/            Architecture notes and decision records
 ```
