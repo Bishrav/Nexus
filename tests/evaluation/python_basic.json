@@ -1,0 +1,64 @@
+{
+  "relationships": [
+    {
+      "kind": "imports",
+      "repository_id": "evaluation:local",
+      "schema_version": "nexus.domain.v1",
+      "source_id": "file:evaluation:local:tests/evaluation/python_basic.py",
+      "target_id": "module:python:os",
+      "type": "relationship"
+    },
+    {
+      "kind": "calls",
+      "repository_id": "evaluation:local",
+      "schema_version": "nexus.domain.v1",
+      "source_id": "symbol:evaluation:local:tests/evaluation/python_basic.py:Service.run",
+      "target_id": "symbol:evaluation:local:tests/evaluation/python_basic.py:helper",
+      "type": "relationship"
+    },
+    {
+      "kind": "calls",
+      "repository_id": "evaluation:local",
+      "schema_version": "nexus.domain.v1",
+      "source_id": "symbol:evaluation:local:tests/evaluation/python_basic.py:helper",
+      "target_id": "symbol:evaluation:local:tests/evaluation/python_basic.py:os.getcwd",
+      "type": "relationship"
+    }
+  ],
+  "status": "complete",
+  "symbols": [
+    {
+      "end_line": 5,
+      "file_path": "tests/evaluation/python_basic.py",
+      "kind": "function",
+      "name": "helper",
+      "repository_id": "evaluation:local",
+      "schema_version": "nexus.domain.v1",
+      "start_line": 4,
+      "symbol_id": "symbol:evaluation:local:tests/evaluation/python_basic.py:helper",
+      "type": "symbol"
+    },
+    {
+      "end_line": 10,
+      "file_path": "tests/evaluation/python_basic.py",
+      "kind": "class",
+      "name": "Service",
+      "repository_id": "evaluation:local",
+      "schema_version": "nexus.domain.v1",
+      "start_line": 8,
+      "symbol_id": "symbol:evaluation:local:tests/evaluation/python_basic.py:Service",
+      "type": "symbol"
+    },
+    {
+      "end_line": 10,
+      "file_path": "tests/evaluation/python_basic.py",
+      "kind": "method",
+      "name": "run",
+      "repository_id": "evaluation:local",
+      "schema_version": "nexus.domain.v1",
+      "start_line": 9,
+      "symbol_id": "symbol:evaluation:local:tests/evaluation/python_basic.py:Service.run",
+      "type": "symbol"
+    }
+  ]
+}
