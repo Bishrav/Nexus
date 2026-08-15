@@ -78,3 +78,4 @@ The parser-to-facts query path is documented in [docs/repository-index.md](docs/
 Incremental change planning is documented in [docs/incremental-indexing.md](docs/incremental-indexing.md).
 Applying plans to replace stale index facts is documented in [docs/incremental-apply.md](docs/incremental-apply.md).
 Git revision and changed-file discovery are documented in [docs/git-source.md](docs/git-source.md).
+Durable index snapshots are documented in [docs/snapshots.md](docs/snapshots.md).

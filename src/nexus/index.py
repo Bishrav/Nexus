@@ -60,13 +60,26 @@ class RepositoryIndex:
     def add_parser_output(self, output: ParserOutputContract) -> None:
         self.add_source_file(output.source_file)
         if output.status == ParseStatus.FAILED:
-            self._diagnostics.extend(output.diagnostics)
+            for diagnostic in output.diagnostics:
+                self.add_diagnostic(diagnostic)
             return
         for symbol in output.symbols:
-            self._add_symbol(symbol)
+            self.add_symbol(symbol)
         for relationship in output.relationships:
-            self._add_relationship(relationship)
-        self._diagnostics.extend(output.diagnostics)
+            self.add_relationship(relationship)
+        for diagnostic in output.diagnostics:
+            self.add_diagnostic(diagnostic)
+
+    def add_symbol(self, symbol: SymbolContract) -> None:
+        self._add_symbol(symbol)
+
+    def add_relationship(self, relationship: RelationshipContract) -> None:
+        self._add_relationship(relationship)
+
+    def add_diagnostic(self, diagnostic: DiagnosticContract) -> None:
+        if not isinstance(diagnostic, DiagnosticContract):
+            raise IndexValidationError("diagnostic must be a DiagnosticContract")
+        self._diagnostics.append(diagnostic)
 
     def remove_file(self, path: str) -> None:
         """Remove one file and all facts whose identity is scoped to it."""
