@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 
-from nexus.domain import SymbolContract, SymbolKind
+from nexus.domain import RelationshipContract, RelationshipKind, SymbolContract, SymbolKind
 from nexus.ingestion import DiagnosticContract, DiagnosticSeverity
 from nexus.parser import ParseStatus, ParserInputContract, ParserOutputContract
 
@@ -32,7 +32,18 @@ class PythonParserAdapter:
         extractor = _SymbolExtractor(source_file.repository_id, source_file.path)
         extractor.visit(tree)
         symbols = tuple(sorted(extractor.symbols, key=lambda symbol: (symbol.start_line, symbol.symbol_id)))
-        return ParserOutputContract(source_file, ParseStatus.COMPLETE, symbols=symbols)
+        relationships = tuple(
+            sorted(
+                extractor.relationships,
+                key=lambda relationship: (relationship.source_id, relationship.target_id),
+            )
+        )
+        return ParserOutputContract(
+            source_file,
+            ParseStatus.COMPLETE,
+            symbols=symbols,
+            relationships=relationships,
+        )
 
 
 class _SymbolExtractor(ast.NodeVisitor):
@@ -40,6 +51,7 @@ class _SymbolExtractor(ast.NodeVisitor):
         self.repository_id = repository_id
         self.file_path = file_path
         self.symbols: list[SymbolContract] = []
+        self.relationships: list[RelationshipContract] = []
         self._scope: list[tuple[str, SymbolKind | None]] = []
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
@@ -67,6 +79,34 @@ class _SymbolExtractor(ast.NodeVisitor):
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
         for name in _target_names(node.target):
             self._add(node, name, SymbolKind.VARIABLE)
+        self.generic_visit(node)
+
+    def visit_Import(self, node: ast.Import) -> None:
+        source_id = f"file:{self.repository_id}:{self.file_path}"
+        for imported in node.names:
+            self.relationships.append(
+                RelationshipContract(
+                    self.repository_id,
+                    source_id,
+                    f"module:python:{imported.name}",
+                    RelationshipKind.IMPORTS,
+                )
+            )
+        self.generic_visit(node)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        source_id = f"file:{self.repository_id}:{self.file_path}"
+        module = "." * node.level + (node.module or "")
+        for imported in node.names:
+            target = ".".join(part for part in (module, imported.name) if part)
+            self.relationships.append(
+                RelationshipContract(
+                    self.repository_id,
+                    source_id,
+                    f"module:python:{target}",
+                    RelationshipKind.IMPORTS,
+                )
+            )
         self.generic_visit(node)
 
     def _add(self, node: ast.AST, name: str, kind: SymbolKind) -> None:

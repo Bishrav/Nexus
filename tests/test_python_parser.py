@@ -8,6 +8,7 @@ from nexus.python_parser import PythonParserAdapter
 
 HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 FIXTURE = Path(__file__).parent / "fixtures" / "python_parser.py"
+IMPORT_FIXTURE = Path(__file__).parent / "fixtures" / "python_imports.py"
 
 
 class PythonParserTests(unittest.TestCase):
@@ -35,6 +36,37 @@ class PythonParserTests(unittest.TestCase):
         self.assertEqual(len(result.diagnostics), 1)
         self.assertEqual(result.diagnostics[0].code, "SYNTAX_ERROR")
         self.assertEqual(result.symbols, ())
+
+    def test_extracts_import_relationships(self) -> None:
+        source_file = SourceFileContract(
+            "repo:nexus", "tests/fixtures/python_imports.py", "python", HASH, 80
+        )
+        result = self.parser.parse(
+            ParserInputContract(source_file, IMPORT_FIXTURE.read_text(encoding="utf-8"))
+        )
+        self.assertEqual(
+            [
+                (relationship.source_id, relationship.target_id, relationship.kind.value)
+                for relationship in result.relationships
+            ],
+            [
+                (
+                    "file:repo:nexus:tests/fixtures/python_imports.py",
+                    "module:python:.helpers.normalize",
+                    "imports",
+                ),
+                (
+                    "file:repo:nexus:tests/fixtures/python_imports.py",
+                    "module:python:collections.deque",
+                    "imports",
+                ),
+                (
+                    "file:repo:nexus:tests/fixtures/python_imports.py",
+                    "module:python:os",
+                    "imports",
+                ),
+            ],
+        )
 
 
 if __name__ == "__main__":
