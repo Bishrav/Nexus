@@ -1,0 +1,38 @@
+{
+  "schema_version": "nexus.domain.v1",
+  "type": "parser_output",
+  "source_file": {
+    "schema_version": "nexus.domain.v1",
+    "type": "source_file",
+    "repository_id": "repo:nexus",
+    "path": "src/nexus/cli.py",
+    "language": "python",
+    "content_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "size_bytes": 64
+  },
+  "status": "partial",
+  "symbols": [
+    {
+      "schema_version": "nexus.domain.v1",
+      "type": "symbol",
+      "symbol_id": "symbol:nexus.cli.main",
+      "repository_id": "repo:nexus",
+      "name": "main",
+      "kind": "function",
+      "file_path": "src/nexus/cli.py",
+      "start_line": 12,
+      "end_line": 14
+    }
+  ],
+  "relationships": [],
+  "diagnostics": [
+    {
+      "schema_version": "nexus.domain.v1",
+      "type": "diagnostic",
+      "severity": "warning",
+      "code": "SYNTAX_RECOVERY",
+      "message": "Parser recovered after an unsupported construct.",
+      "path": "src/nexus/cli.py"
+    }
+  ]
+}
