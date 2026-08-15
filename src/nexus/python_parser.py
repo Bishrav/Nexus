@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import ast
+import time
 
 from nexus.domain import RelationshipContract, RelationshipKind, SymbolContract, SymbolKind
 from nexus.ingestion import DiagnosticContract, DiagnosticSeverity
+from nexus.observability import MetricsCollector
 from nexus.parser import ParseStatus, ParserInputContract, ParserOutputContract
 
 
@@ -14,8 +16,12 @@ class PythonParserAdapter:
 
     language = "python"
 
+    def __init__(self, metrics: MetricsCollector | None = None) -> None:
+        self.metrics = metrics
+
     def parse(self, parser_input: ParserInputContract) -> ParserOutputContract:
         source_file = parser_input.source_file
+        started = time.perf_counter()
         try:
             tree = ast.parse(parser_input.content, filename=source_file.path)
         except SyntaxError as error:
@@ -27,7 +33,9 @@ class PythonParserAdapter:
                 f"{message} (line {line})",
                 source_file.path,
             )
-            return ParserOutputContract(source_file, ParseStatus.FAILED, diagnostics=(diagnostic,))
+            result = ParserOutputContract(source_file, ParseStatus.FAILED, diagnostics=(diagnostic,))
+            self._record_metrics("failure", started)
+            return result
 
         extractor = _SymbolExtractor(source_file.repository_id, source_file.path)
         extractor.visit(tree)
@@ -38,12 +46,18 @@ class PythonParserAdapter:
                 key=lambda relationship: (relationship.source_id, relationship.target_id),
             )
         )
-        return ParserOutputContract(
+        result = ParserOutputContract(
             source_file,
             ParseStatus.COMPLETE,
             symbols=symbols,
             relationships=relationships,
         )
+        self._record_metrics("success", started)
+        return result
+
+    def _record_metrics(self, outcome: str, started: float) -> None:
+        if self.metrics is not None:
+            self.metrics.record("python.parse", outcome, (time.perf_counter() - started) * 1000)
 
 
 class _SymbolExtractor(ast.NodeVisitor):

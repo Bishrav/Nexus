@@ -79,3 +79,4 @@ Incremental change planning is documented in [docs/incremental-indexing.md](docs
 Applying plans to replace stale index facts is documented in [docs/incremental-apply.md](docs/incremental-apply.md).
 Git revision and changed-file discovery are documented in [docs/git-source.md](docs/git-source.md).
 Durable index snapshots are documented in [docs/snapshots.md](docs/snapshots.md).
+The Phase 4 observability baseline is documented in [docs/observability.md](docs/observability.md).
