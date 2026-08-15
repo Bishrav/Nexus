@@ -70,3 +70,4 @@ docs/            Architecture notes and decision records
 ```
 
 Phase 1 domain contracts are documented in [docs/domain-contracts.md](docs/domain-contracts.md).
+Ingestion request, result, and diagnostic semantics are documented in [docs/ingestion-contracts.md](docs/ingestion-contracts.md).

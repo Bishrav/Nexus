@@ -1,0 +1,40 @@
+{
+  "request": {
+    "schema_version": "nexus.domain.v1",
+    "type": "ingestion_request",
+    "request_id": "ingest:001",
+    "repository_id": "repo:nexus",
+    "root_path": "C:/work/Nexus",
+    "revision": "a1b2c3d",
+    "languages": ["python"]
+  },
+  "result": {
+    "schema_version": "nexus.domain.v1",
+    "type": "ingestion_result",
+    "request_id": "ingest:001",
+    "repository_id": "repo:nexus",
+    "revision": "a1b2c3d",
+    "status": "partial",
+    "files": [
+      {
+        "schema_version": "nexus.domain.v1",
+        "type": "source_file",
+        "repository_id": "repo:nexus",
+        "path": "src/nexus/cli.py",
+        "language": "python",
+        "content_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "size_bytes": 64
+      }
+    ],
+    "diagnostics": [
+      {
+        "schema_version": "nexus.domain.v1",
+        "type": "diagnostic",
+        "severity": "warning",
+        "code": "UNSUPPORTED_FILE",
+        "message": "Skipped an unsupported file.",
+        "path": "assets/logo.bin"
+      }
+    ]
+  }
+}
