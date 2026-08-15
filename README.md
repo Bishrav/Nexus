@@ -75,3 +75,4 @@ The parser adapter and normalized output boundary are documented in [docs/parser
 Parser selection and dispatch are documented in [docs/parser-registry.md](docs/parser-registry.md).
 The first implemented parser is documented in [docs/python-parser.md](docs/python-parser.md); it currently extracts Python symbols only.
 The parser-to-facts query path is documented in [docs/repository-index.md](docs/repository-index.md).
+Incremental change planning is documented in [docs/incremental-indexing.md](docs/incremental-indexing.md).
