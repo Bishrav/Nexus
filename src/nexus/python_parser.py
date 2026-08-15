@@ -109,6 +109,21 @@ class _SymbolExtractor(ast.NodeVisitor):
             )
         self.generic_visit(node)
 
+    def visit_Call(self, node: ast.Call) -> None:
+        target_name = _call_target_name(node.func)
+        if target_name is not None:
+            caller_id = self._current_scope_id()
+            target_id = f"symbol:{self.repository_id}:{self.file_path}:{target_name}"
+            self.relationships.append(
+                RelationshipContract(
+                    self.repository_id,
+                    caller_id,
+                    target_id,
+                    RelationshipKind.CALLS,
+                )
+            )
+        self.generic_visit(node)
+
     def _add(self, node: ast.AST, name: str, kind: SymbolKind) -> None:
         qualified_name = ".".join([item[0] for item in self._scope] + [name])
         start_line = getattr(node, "lineno", 1)
@@ -125,6 +140,12 @@ class _SymbolExtractor(ast.NodeVisitor):
             )
         )
 
+    def _current_scope_id(self) -> str:
+        if not self._scope or self._scope[-1][1] not in (SymbolKind.FUNCTION, SymbolKind.METHOD):
+            return f"file:{self.repository_id}:{self.file_path}"
+        qualified_name = ".".join(item[0] for item in self._scope)
+        return f"symbol:{self.repository_id}:{self.file_path}:{qualified_name}"
+
 
 def _target_names(target: ast.expr) -> tuple[str, ...]:
     if isinstance(target, ast.Name):
@@ -135,3 +156,18 @@ def _target_names(target: ast.expr) -> tuple[str, ...]:
             names.extend(_target_names(element))
         return tuple(names)
     return ()
+
+
+def _call_target_name(function: ast.expr) -> str | None:
+    if isinstance(function, ast.Name):
+        return function.id
+    if isinstance(function, ast.Attribute):
+        parts: list[str] = []
+        current: ast.expr = function
+        while isinstance(current, ast.Attribute):
+            parts.append(current.attr)
+            current = current.value
+        if isinstance(current, ast.Name):
+            parts.append(current.id)
+            return ".".join(reversed(parts))
+    return None

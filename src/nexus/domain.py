@@ -152,9 +152,6 @@ class RelationshipContract:
         _require_identifier(self.target_id, "target_id")
         if not isinstance(self.kind, RelationshipKind):
             raise ContractValidationError("kind must be a RelationshipKind")
-        if self.source_id == self.target_id:
-            raise ContractValidationError("source_id and target_id must identify different nodes")
-
     def to_dict(self) -> dict[str, Any]:
         return {
             "schema_version": SCHEMA_VERSION,

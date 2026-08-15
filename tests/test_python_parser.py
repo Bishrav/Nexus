@@ -9,6 +9,7 @@ from nexus.python_parser import PythonParserAdapter
 HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 FIXTURE = Path(__file__).parent / "fixtures" / "python_parser.py"
 IMPORT_FIXTURE = Path(__file__).parent / "fixtures" / "python_imports.py"
+CALL_FIXTURE = Path(__file__).parent / "fixtures" / "python_calls.py"
 
 
 class PythonParserTests(unittest.TestCase):
@@ -64,6 +65,38 @@ class PythonParserTests(unittest.TestCase):
                     "file:repo:nexus:tests/fixtures/python_imports.py",
                     "module:python:os",
                     "imports",
+                ),
+            ],
+        )
+
+    def test_extracts_call_relationships_and_recursive_self_edges(self) -> None:
+        source_file = SourceFileContract(
+            "repo:nexus", "tests/fixtures/python_calls.py", "python", HASH, 120
+        )
+        result = self.parser.parse(
+            ParserInputContract(source_file, CALL_FIXTURE.read_text(encoding="utf-8"))
+        )
+        self.assertEqual(
+            [
+                (relationship.source_id, relationship.target_id, relationship.kind.value)
+                for relationship in result.relationships
+                if relationship.kind.value == "calls"
+            ],
+            [
+                (
+                    "symbol:repo:nexus:tests/fixtures/python_calls.py:main",
+                    "symbol:repo:nexus:tests/fixtures/python_calls.py:helper",
+                    "calls",
+                ),
+                (
+                    "symbol:repo:nexus:tests/fixtures/python_calls.py:main",
+                    "symbol:repo:nexus:tests/fixtures/python_calls.py:service.run",
+                    "calls",
+                ),
+                (
+                    "symbol:repo:nexus:tests/fixtures/python_calls.py:recursive",
+                    "symbol:repo:nexus:tests/fixtures/python_calls.py:recursive",
+                    "calls",
                 ),
             ],
         )

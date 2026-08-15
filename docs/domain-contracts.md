@@ -23,7 +23,7 @@ The contracts deliberately do not perform parsing, persistence, graph traversal,
 - Source paths are relative to the repository and cannot escape through `..` segments.
 - Source hashes are 64-character hexadecimal SHA-256 digests.
 - Symbol locations use positive, ordered line numbers.
-- Relationship endpoints cannot be the same node.
+- Relationship endpoints may be the same node so recursive calls and other graph self-edges are representable.
 - Enum values are explicit and serialized as strings.
 
 The deterministic fixture in [`tests/fixtures/domain_contract.json`](../tests/fixtures/domain_contract.json) is the compatibility reference for the initial representation.
