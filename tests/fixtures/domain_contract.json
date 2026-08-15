@@ -1,0 +1,37 @@
+{
+  "repository": {
+    "schema_version": "nexus.domain.v1",
+    "type": "repository",
+    "repository_id": "repo:nexus",
+    "name": "NEXUS",
+    "revision": "a1b2c3d"
+  },
+  "source_file": {
+    "schema_version": "nexus.domain.v1",
+    "type": "source_file",
+    "repository_id": "repo:nexus",
+    "path": "src/nexus/domain.py",
+    "language": "python",
+    "content_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "size_bytes": 128
+  },
+  "symbol": {
+    "schema_version": "nexus.domain.v1",
+    "type": "symbol",
+    "symbol_id": "symbol:nexus.domain.RepositoryContract",
+    "repository_id": "repo:nexus",
+    "name": "RepositoryContract",
+    "kind": "class",
+    "file_path": "src/nexus/domain.py",
+    "start_line": 44,
+    "end_line": 61
+  },
+  "relationship": {
+    "schema_version": "nexus.domain.v1",
+    "type": "relationship",
+    "repository_id": "repo:nexus",
+    "source_id": "symbol:nexus.cli.main",
+    "target_id": "symbol:nexus.cli.build_parser",
+    "kind": "calls"
+  }
+}

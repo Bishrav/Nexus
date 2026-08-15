@@ -68,3 +68,5 @@ pyproject.toml   Package metadata and development entry point
 docs/            Architecture notes and decision records
 .github/         Continuous integration workflow
 ```
+
+Phase 1 domain contracts are documented in [docs/domain-contracts.md](docs/domain-contracts.md).
