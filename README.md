@@ -73,3 +73,4 @@ Phase 1 domain contracts are documented in [docs/domain-contracts.md](docs/domai
 Ingestion request, result, and diagnostic semantics are documented in [docs/ingestion-contracts.md](docs/ingestion-contracts.md).
 The parser adapter and normalized output boundary are documented in [docs/parser-adapters.md](docs/parser-adapters.md).
 Parser selection and dispatch are documented in [docs/parser-registry.md](docs/parser-registry.md).
+The first implemented parser is documented in [docs/python-parser.md](docs/python-parser.md); it currently extracts Python symbols only.
