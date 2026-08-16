@@ -115,11 +115,14 @@ Run the local test and syntax checks:
 
 ```powershell
 $env:PYTHONPATH = "src"
-python -m unittest discover -s tests -v
-python -c "from pathlib import Path; files=list(Path('src').rglob('*.py'))+list(Path('tests').rglob('*.py')); [compile(p.read_text(encoding='utf-8'), str(p), 'exec') for p in files]"
+python scripts/verify.py
 ```
 
-GitHub Actions runs the package installation, unit tests, syntax compilation, and CLI verification across Python 3.11, 3.12, and 3.13. See [.github/workflows/ci.yml](.github/workflows/ci.yml).
+The repository verification command runs the test suite, checks Python syntax
+without writing cache files, checks CLI startup, runs the end-to-end example, and validates local
+README links. GitHub Actions runs the same verification after package
+installation across Python 3.11, 3.12, and 3.13. See
+[.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 The current suite contains 56 tests covering contracts, parser behavior, indexing, Git failure handling, snapshots, benchmarks, and evaluation fixtures.
 
@@ -166,6 +169,7 @@ The current suite contains 56 tests covering contracts, parser behavior, indexin
 src/nexus/       Core contracts, parser, index, Git, snapshots, and CLI
 tests/           Unit, integration, evaluation, and benchmark tests
 examples/        Small runnable workflows for local exploration
+scripts/         Repository verification commands
 docs/            Architecture, contracts, operations, and evaluation notes
 .github/         Continuous integration workflow
 pyproject.toml   Package metadata and CLI entry point
