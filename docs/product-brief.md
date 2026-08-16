@@ -1,6 +1,6 @@
 # NEXUS product brief
 
-Status: **Planned — Phase 7 productization and market validation**
+Status: **In Development — Phase 7 productization and market validation**
 
 This brief defines the product direction for the next phase. It is a product
 hypothesis, not evidence of market fit.
@@ -92,5 +92,6 @@ can install NEXUS, run one documented repository-analysis workflow, inspect
 source locations and relationships, and understand parser failures without
 reading internal implementation code.
 
-It can only be considered market-validated after external user evidence is
+The [user-validation kit](user-validation.md) defines the study protocol. It
+can only be considered market-validated after external user evidence is
 collected and reported separately from engineering test results.
