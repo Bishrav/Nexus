@@ -30,5 +30,8 @@ jobs:
       - name: Install package
         run: python -m pip install --upgrade pip && python -m pip install --no-deps .
 
+      - name: Verify installed package location
+        run: python -c "import nexus; from pathlib import Path; location = str(Path(nexus.__file__).resolve()); assert 'site-packages' in location, location; print(location)"
+
       - name: Run repository verification
         run: python scripts/verify.py

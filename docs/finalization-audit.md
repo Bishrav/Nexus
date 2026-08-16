@@ -33,7 +33,8 @@ network access was denied.
 This is an environment limitation, not evidence that installation is broken.
 The repository's CI workflow remains the authoritative clean-run path: it
 checks out the repository, installs the package on Python 3.11, 3.12, and
-3.13, and runs `scripts/verify.py`.
+3.13, verifies that the import resolves from `site-packages`, and runs
+`scripts/verify.py`.
 
 ## Claims audit
 
