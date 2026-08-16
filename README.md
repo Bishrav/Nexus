@@ -107,6 +107,13 @@ Run a sequential parser load test:
 python -m nexus load-test --fixture tests/fixtures/python_parser.py --operations 100
 ```
 
+Analyze one Python file and inspect its indexed facts:
+
+```powershell
+python -m nexus analyze --file tests/fixtures/python_parser.py
+python -m nexus analyze --file tests/fixtures/python_parser.py --format json
+```
+
 These commands report local observations and correctness results. They do not claim production throughput, scalability, or model quality.
 
 ## Validation and CI

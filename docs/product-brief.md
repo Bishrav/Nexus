@@ -53,8 +53,9 @@ Developer asks for changed symbols and relationships
 NEXUS returns deterministic facts with source locations
 ```
 
-The current repository already implements the indexing foundation. The next
-product work is to expose a coherent user workflow around those primitives.
+The current repository already implements the indexing foundation. The first
+user-facing workflow is now available through `python -m nexus analyze` for one
+Python file; broader repository and revision workflows remain next.
 
 ## Non-goals for the first product slice
 
