@@ -1,62 +1,101 @@
-# NEXUS architecture baseline
+# NEXUS architecture
 
 ## Purpose
 
 NEXUS will provide structured repository facts to developer workflows and AI tools. The system should be able to answer questions such as which symbols depend on a changed function, which tests cover an affected module, and which repository files provide the evidence for an answer.
 
-The architecture is intentionally staged. The first implementation will establish deterministic repository facts before adding retrieval or model providers.
+The architecture is intentionally staged. The implemented foundation establishes
+deterministic repository facts before retrieval or model providers are added.
 
-## Planned boundaries
+## System view
 
-```text
-Repository input
-        |
-        v
-Repository service ---- Git history reader
-        |
-        v
-Parser coordinator ---- language parser workers
-        |
-        v
-Normalized domain model
-        |
-        +--> Symbol and source index
-        +--> Relationship graph
-        +--> Evidence and query layer
-                         |
-                         v
-                 AI tooling adapters
+```mermaid
+flowchart LR
+    G[Git revisions] --> R[Git revision reader]
+    F[Source files] --> P[Parser registry]
+    R --> C[Incremental change planner]
+    C --> P
+    P --> A[Python AST adapter]
+    A --> D[Versioned domain contracts]
+    D --> I[Repository index]
+    I --> Q[Deterministic queries]
+    I --> S[JSON snapshots]
+    Q --> E[Future evidence layer]
+    E --> T[Future AI tooling adapters]
 ```
 
-### Repository service
+The solid path through the parser, contracts, index, and snapshots is currently
+implemented. The evidence and AI adapter nodes are explicit extension points,
+not completed features.
 
-Owns repository identity, working-tree discovery, file enumeration, and later Git revision tracking. It must not contain parser-specific logic.
+## Boundaries
 
-### Parser coordinator
+```text
+Repository input --> Git revision reader --> incremental planner
+                                  |
+                                  v
+                         parser registry
+                                  |
+                                  v
+                         language adapter
+                                  |
+                                  v
+                    normalized domain contracts
+                         |                    |
+                         v                    v
+                  repository index      JSON snapshot
+                         |
+                         v
+                 deterministic queries
+```
 
-Selects a parser based on detected language and converts parser output into versioned NEXUS domain records. Parser workers are replaceable and independently testable.
+### Git revision reader and incremental planner
+
+`GitRevisionReader` isolates subprocess execution and parses revision changes
+into typed file-change records. `plan_incremental_update` classifies paths as
+added, changed, removed, or unchanged. Applying a plan removes stale facts
+before replacement facts are added.
+
+### Parser registry and adapters
+
+`ParserRegistry` selects an adapter by language. The current adapter is
+`PythonParserAdapter`, which uses the standard-library AST module. Adapters
+return normalized parser contracts and do not write to the index directly.
 
 ### Normalized domain model
 
 Defines stable records for repositories, files, symbols, and relationships. Downstream indexes and graph queries consume these records instead of language-specific parser objects.
 
-### Index and graph layers
+### Index and query layer
 
-The source/symbol index supports exact lookup. The relationship graph supports dependency traversal, impact analysis, and later evidence construction. Storage choices remain open until the domain contracts and fixture workload are measured.
+`RepositoryIndex` stores source files, symbols, relationships, and diagnostics in
+memory. It supports exact symbol lookup and relationship queries. Relationship
+records are the current graph foundation; broader traversal and cross-file
+resolution remain planned.
 
-### AI tooling adapters
+### Snapshot boundary
 
-AI features will call typed query interfaces and receive evidence that identifies the relevant files, symbols, and relationships. Model providers must remain outside the core indexing and graph logic.
+`nexus.snapshot.v1` serializes the index into deterministic JSON. Snapshot
+loading validates the schema before restoring an index. This keeps persistence
+explicit while storage requirements are still being measured.
 
-## First vertical slice
+### Future evidence and AI tooling adapters
+
+Future AI features will call typed query interfaces and receive evidence that
+identifies relevant files, symbols, and relationships. Model providers must
+remain outside the core indexing and graph logic. Neither the evidence layer
+nor provider integration is implemented yet.
+
+## Current vertical slice
 
 The first functional slice is intentionally narrow:
 
-1. Accept a local repository path.
-2. Detect supported source files.
-3. Parse one language into deterministic symbol records.
-4. Persist or return those records through a stable interface.
-5. Test the result against checked-in fixtures.
+1. Read a checked-in or caller-provided source file.
+2. Build a validated source-file contract.
+3. Parse Python into deterministic symbols and syntactic relationships.
+4. Add the parser output to an in-memory repository index.
+5. Query or serialize the resulting facts.
+6. Exercise the behavior with unit, golden-evaluation, benchmark, and load-test harnesses.
 
 No vector database, external model provider, hosted service, or production deployment is part of this slice.
 
@@ -70,4 +109,9 @@ No vector database, external model provider, hosted service, or production deplo
 
 ## Current status
 
-This document describes the Phase 0 architecture baseline. It is a design target, not evidence that the parser, graph, index, or AI layers are implemented.
+The parser, contracts, index, Git change discovery, snapshots, and local
+evaluation harnesses are implemented. Persistent storage, cross-file semantic
+resolution, retrieval, evidence construction, and AI integrations remain
+planned. See [ADR 0001](decisions/0001-deterministic-core-first.md) and
+[ADR 0002](decisions/0002-explicit-boundaries-and-deterministic-evidence.md)
+for the main architectural decisions.

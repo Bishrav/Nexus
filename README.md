@@ -140,6 +140,7 @@ The current suite contains 56 tests covering contracts, parser behavior, indexin
 - [Operational limits](docs/operational-limits.md)
 - [Load tests](docs/load-tests.md)
 - [Developer guide](docs/developer-guide.md)
+- [ADR 0002: Explicit boundaries](docs/decisions/0002-explicit-boundaries-and-deterministic-evidence.md)
 
 ## Known limitations
 
