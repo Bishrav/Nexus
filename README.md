@@ -6,7 +6,7 @@ It turns source code and Git revisions into deterministic, queryable facts: file
 
 ## Project status
 
-**In Development - Phase 5 complete; Phase 6 finalization in progress**
+**In Development - Phase 6 finalization complete**
 
 The core research prototype is implemented and tested. NEXUS currently supports Python AST symbol extraction, syntactic import/call relationships, in-memory indexing, incremental change planning/application, Git change discovery, JSON snapshots, runtime metrics, benchmarks, golden evaluation, and bounded failure handling.
 
@@ -159,11 +159,10 @@ The current suite contains 56 tests covering contracts, parser behavior, indexin
 
 ## Roadmap
 
-1. Phase 6: re-verify clean setup, audit claims, and prepare the public release.
-2. Add stronger graph queries and cross-file symbol resolution.
-3. Add additional language adapters behind the existing parser protocol.
-4. Add persistent storage and background indexing workflows.
-5. Add retrieval and typed evidence tooling after deterministic facts are reliable.
+1. Add stronger graph queries and cross-file symbol resolution.
+2. Add additional language adapters behind the existing parser protocol.
+3. Add persistent storage and background indexing workflows.
+4. Add retrieval and typed evidence tooling after deterministic facts are reliable.
 
 ## Repository structure
 
