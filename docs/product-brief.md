@@ -55,7 +55,8 @@ NEXUS returns deterministic facts with source locations
 
 The current repository already implements the indexing foundation. The first
 user-facing workflow is now available through `python -m nexus analyze` for one
-Python file; broader repository and revision workflows remain next.
+Python file. `python -m nexus impact` adds a deterministic caller query with
+source locations; broader repository and revision workflows remain next.
 
 ## Non-goals for the first product slice
 

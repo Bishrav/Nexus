@@ -37,6 +37,25 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result["summary"]["file_count"], 1)
         self.assertGreater(result["summary"]["symbol_count"], 0)
 
+    def test_impact_command_returns_callers_as_json(self) -> None:
+        output = StringIO()
+        with redirect_stdout(output):
+            exit_code = main(
+                [
+                    "impact",
+                    "--file",
+                    "tests/fixtures/python_parser.py",
+                    "--symbol",
+                    "Greeter",
+                    "--format",
+                    "json",
+                ]
+            )
+        result = json.loads(output.getvalue())
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(result["symbol"]["name"], "Greeter")
+        self.assertEqual(result["callers"][0]["caller"]["name"], "build_greeter")
+
 
 if __name__ == "__main__":
     unittest.main()

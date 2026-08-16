@@ -114,6 +114,13 @@ python -m nexus analyze --file tests/fixtures/python_parser.py
 python -m nexus analyze --file tests/fixtures/python_parser.py --format json
 ```
 
+Find the callers of a symbol and inspect its source evidence:
+
+```powershell
+python -m nexus impact --file tests/fixtures/python_parser.py --symbol Greeter
+python -m nexus impact --file tests/fixtures/python_parser.py --symbol Greeter --format json
+```
+
 These commands report local observations and correctness results. They do not claim production throughput, scalability, or model quality.
 
 ## Validation and CI
@@ -131,7 +138,7 @@ README links. GitHub Actions runs the same verification after package
 installation across Python 3.11, 3.12, and 3.13. See
 [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-The current suite contains 56 tests covering contracts, parser behavior, indexing, Git failure handling, snapshots, benchmarks, and evaluation fixtures.
+The current suite contains 58 tests covering contracts, parser behavior, indexing, Git failure handling, snapshots, benchmarks, evaluation fixtures, and CLI workflows.
 
 ## Documentation
 

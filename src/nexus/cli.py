@@ -10,6 +10,7 @@ from nexus import __version__
 from nexus.analyze import analyze_python_file
 from nexus.benchmark import run_python_parser_benchmark
 from nexus.evaluation import evaluate_python_fixture
+from nexus.impact import find_symbol_impact
 from nexus.load_test import run_sequential_load_test
 
 
@@ -32,6 +33,10 @@ def build_parser() -> argparse.ArgumentParser:
     analyze = commands.add_parser("analyze", help="analyze one Python file and show repository facts")
     analyze.add_argument("--file", default="tests/fixtures/python_parser.py")
     analyze.add_argument("--format", choices=("text", "json"), default="text")
+    impact = commands.add_parser("impact", help="find callers of a symbol in one Python file")
+    impact.add_argument("--file", default="tests/fixtures/python_parser.py")
+    impact.add_argument("--symbol", required=True)
+    impact.add_argument("--format", choices=("text", "json"), default="text")
     return parser
 
 
@@ -78,4 +83,33 @@ def main(argv: list[str] | None = None) -> int:
             for diagnostic in result.diagnostics:
                 print(f"! {diagnostic['code']}: {diagnostic['message']}")
         return 0 if result.succeeded else 1
+    elif args.command == "impact":
+        try:
+            analysis = analyze_python_file(Path(args.file))
+        except (OSError, ValueError) as error:
+            print(f"nexus impact: {error}")
+            return 2
+        if not analysis.succeeded:
+            print(f"nexus impact: analysis {analysis.status.value}")
+            return 1
+        result = find_symbol_impact(analysis, args.symbol)
+        if result is None:
+            print(f"nexus impact: symbol {args.symbol!r} was not found")
+            return 1
+        if args.format == "json":
+            print(json.dumps(result.to_dict(), sort_keys=True))
+        else:
+            symbol = result.symbol
+            print(f"Impact: {symbol['name']} ({symbol['file_path']}:{symbol['start_line']})")
+            if not result.callers:
+                print("Callers: none")
+            else:
+                print(f"Callers: {len(result.callers)}")
+                for item in result.callers:
+                    caller = item["caller"]
+                    if caller is None:
+                        print(f"- {item['relationship']['source_id']}")
+                    else:
+                        print(f"- {caller['name']} ({caller['file_path']}:{caller['start_line']})")
+        return 0
     return 0
