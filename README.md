@@ -139,6 +139,7 @@ The current suite contains 56 tests covering contracts, parser behavior, indexin
 - [Golden evaluation](docs/evaluation.md)
 - [Operational limits](docs/operational-limits.md)
 - [Load tests](docs/load-tests.md)
+- [Developer guide](docs/developer-guide.md)
 
 ## Known limitations
 
@@ -163,6 +164,7 @@ The current suite contains 56 tests covering contracts, parser behavior, indexin
 ```text
 src/nexus/       Core contracts, parser, index, Git, snapshots, and CLI
 tests/           Unit, integration, evaluation, and benchmark tests
+examples/        Small runnable workflows for local exploration
 docs/            Architecture, contracts, operations, and evaluation notes
 .github/         Continuous integration workflow
 pyproject.toml   Package metadata and CLI entry point
